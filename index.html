@@ -3,115 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulador Sorteo Mundial 2026 - Final</title>
+    <title>Sorteo 2026: Dashboard Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Librería ligera para el gráfico -->
     <style>
-        /* Fuentes y Estilos Base */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #10b981 0%, #047857 50%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
             color: white;
-            overflow-x: hidden;
+            padding-bottom: 100px;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-
-        /* Animaciones */
         .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+        .tab-btn.active {
+            background-color: white;
+            color: black;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
         }
 
-        /* Grid Compacto Mobile */
-        .compact-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.35rem; 
+        /* Acordeón detalles */
+        .detail-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .detail-content.open {
+            max-height: 500px;
         }
     </style>
 </head>
-<body class="flex flex-col">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- HEADER -->
-    <div id="main-header" class="bg-black/20 backdrop-blur-lg border-b border-white/10 p-4 sticky top-0 z-40 transition-all duration-300">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2">
-    <!-- Logo IMG -->
-    <img src="https://i.postimg.cc/3RgycY1N/IMG-5513.png" alt="Logo" style="width:120px; height:120px; object-fit:contain;">
-</div>
-            <div class="flex gap-2 text-sm font-bold">
-                <button onclick="app.autoFill()" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700 shadow-lg text-white">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l14.2-12.6c.8-1 2-1.7 3.3-1.7H22"/><path d="M2 6h1.4c1.3 0 2.5.6 3.3 1.7l14.2 12.6c.8 1 2 1.7 3.3 1.7H22"/></svg>
-                    Auto
-                </button>
-                <button onclick="app.reset()" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-transform active:scale-95 bg-red-600 hover:bg-red-700 shadow-lg text-white">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                    Reset
-                </button>
-                <button onclick="app.toggleCaptureMode(true)" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-transform active:scale-95 bg-white text-green-700 hover:bg-gray-100 shadow-lg">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                    Captura
-                </button>
+    <!-- TOP BAR -->
+    <div class="bg-black/40 backdrop-blur-xl border-b border-white/10 p-2 sticky top-0 z-40 shrink-0">
+        <div class="max-w-3xl mx-auto grid grid-cols-4 gap-2 p-1 bg-white/5 rounded-xl">
+            <button onclick="app.switchView('real')" id="tab-real" class="tab-btn active rounded-lg py-2 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all">
+                🔴 EN VIVO
+            </button>
+            <button onclick="app.switchView('gianni')" id="tab-gianni" class="tab-btn rounded-lg py-2 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white/50 hover:text-white">
+                Gianni
+            </button>
+            <button onclick="app.switchView('tici')" id="tab-tici" class="tab-btn rounded-lg py-2 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all text-white/50 hover:text-white">
+                Tici
+            </button>
+            <button onclick="app.switchView('results')" id="tab-results" class="tab-btn rounded-lg py-2 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all bg-gradient-to-r from-yellow-600 to-yellow-500 text-black shadow-lg animate-pulse">
+                🏆 FINAL
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="main-content" class="flex-grow overflow-y-auto relative">
+        
+        <!-- GRID VIEW (Real, Gianni, Tici) -->
+        <div id="grid-view" class="p-3 md:p-6 fade-in">
+            <div id="groups-grid" class="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                <!-- Se llena con JS -->
             </div>
         </div>
-    </div>
 
-    <!-- MODO EDICION (MAIN GRID) -->
-    <div id="editor-view" class="flex-grow p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
-        <div id="groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <!-- JS Inject -->
-        </div>
-    </div>
-
-    <!-- MODO CAPTURA COMPACTO (Overlay) -->
-    <div id="capture-view" class="fixed inset-0 z-50 bg-[#0a1829] hidden flex-col items-center justify-center p-2">
-        <button onclick="app.toggleCaptureMode(false)" class="absolute top-2 right-2 z-[60] bg-black/60 text-white p-2 rounded-full backdrop-blur-md border border-white/20 hover:bg-white/20 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-
-        <div class="w-full max-w-md bg-gradient-to-br from-green-600 via-blue-900 to-green-800 p-3 rounded-2xl shadow-2xl relative flex flex-col h-auto max-h-full aspect-[9/16] sm:aspect-auto">
-            <div class="absolute top-0 left-0 w-32 h-32 bg-green-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 pointer-events-none"></div>
-            <div class="absolute bottom-0 right-0 w-32 h-32 bg-blue-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 pointer-events-none"></div>
-
-            <div class="relative z-10 flex flex-col h-full">
-                <div class="text-center mb-2 shrink-0">
-                    <h1 class="text-2xl font-black uppercase tracking-tighter italic drop-shadow-lg leading-tight">
-                        Predicción <span class="text-green-400">2026</span>
+        <!-- RESULTS DASHBOARD VIEW -->
+        <div id="results-view" class="hidden p-4 md:p-8 fade-in pb-32">
+            <div class="max-w-5xl mx-auto space-y-6">
+                
+                <!-- HEADER RESULTADOS -->
+                <div class="text-center space-y-2">
+                    <h1 class="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">
+                        Resultado <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-400">Final</span>
                     </h1>
+                    <div id="winner-badge" class="inline-block px-6 py-2 rounded-full font-bold text-sm bg-white/10 border border-white/20">
+                        Calculando...
+                    </div>
                 </div>
-                <div id="capture-grid" class="compact-grid grow">
-                    <!-- JS Inject -->
+
+                <!-- SCORE CARDS -->
+                <div class="grid grid-cols-2 gap-4 md:gap-8">
+                    <!-- GIANNI CARD -->
+                    <div class="bg-gradient-to-br from-blue-900/50 to-slate-900 border border-blue-500/30 p-6 rounded-3xl text-center relative overflow-hidden group hover:border-blue-500/60 transition-all">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+                        <div class="text-blue-400 font-bold tracking-[0.2em] text-sm mb-2">GIANNI</div>
+                        <div id="final-score-gianni" class="text-5xl md:text-7xl font-black text-white drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]">0.00</div>
+                        <div class="text-white/30 text-xs mt-2 font-bold">PUNTOS TOTALES</div>
+                    </div>
+
+                    <!-- TICI CARD -->
+                    <div class="bg-gradient-to-br from-red-900/50 to-slate-900 border border-red-500/30 p-6 rounded-3xl text-center relative overflow-hidden group hover:border-red-500/60 transition-all">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+                        <div class="text-red-400 font-bold tracking-[0.2em] text-sm mb-2">TICI</div>
+                        <div id="final-score-tici" class="text-5xl md:text-7xl font-black text-white drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]">0.00</div>
+                        <div class="text-white/30 text-xs mt-2 font-bold">PUNTOS TOTALES</div>
+                    </div>
                 </div>
-                <div class="text-center mt-2 shrink-0 opacity-60 text-[8px] font-bold tracking-[0.3em]">
-                    SIMULADOR NO OFICIAL
+
+                <!-- GRAFICO DIFERENCIAL -->
+                <div class="bg-black/40 border border-white/10 rounded-3xl p-4 md:p-6 backdrop-blur-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-white/70 font-bold uppercase text-xs tracking-widest">Historial de Diferencia (Paso a Paso)</h3>
+                        <div class="flex gap-4 text-[10px] font-bold">
+                            <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Gianni Gana</span>
+                            <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> Tici Gana</span>
+                        </div>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="diffChart"></canvas>
+                    </div>
                 </div>
+
+                <!-- DETALLE DE PUNTOS -->
+                <div class="space-y-3">
+                    <h3 class="text-white/40 font-bold uppercase text-xs tracking-widest text-center mt-8 mb-4">Desglose Grupo por Grupo</h3>
+                    <div id="details-list" class="grid grid-cols-1 gap-3">
+                        <!-- JS INJECT -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BARRA FLOTANTE (Solo visible en EN VIVO) -->
+    <div id="live-bar" class="fixed bottom-0 left-0 w-full bg-[#0b1121] border-t border-white/20 p-4 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)] transition-transform duration-300">
+        <div class="max-w-4xl mx-auto flex justify-between items-center px-2">
+            <div class="text-center w-1/3 border-r border-white/10 cursor-pointer hover:bg-white/5 rounded p-1" onclick="app.switchView('gianni')">
+                <div class="text-[10px] text-blue-400 font-bold tracking-widest mb-1">GIANNI</div>
+                <div id="live-score-gianni" class="text-3xl font-black text-white leading-none">0.00</div>
+            </div>
+            
+            <div class="text-center w-1/3">
+                <div class="text-[8px] text-white/30 font-bold tracking-widest mb-1">DIFERENCIA</div>
+                <div id="live-diff" class="text-xl font-bold text-white leading-none">0.00</div>
+            </div>
+
+            <div class="text-center w-1/3 border-l border-white/10 cursor-pointer hover:bg-white/5 rounded p-1" onclick="app.switchView('tici')">
+                <div class="text-[10px] text-red-400 font-bold tracking-widest mb-1">TICI</div>
+                <div id="live-score-tici" class="text-3xl font-black text-white leading-none">0.00</div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE SELECCIÓN -->
-    <div id="selection-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-md fade-in">
-        <div class="bg-[#0f172a] border border-white/20 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 rounded-t-2xl">
-                <h3 id="modal-title" class="font-bold text-lg">Elegir Equipo</h3>
-                <button onclick="app.closeModal()" class="text-white/50 hover:text-white transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+    <!-- MODAL SELECCION -->
+    <div id="selection-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md fade-in">
+        <div class="bg-slate-900 border border-white/20 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <h3 class="font-bold text-lg">Seleccionar Equipo Oficial</h3>
+                <button onclick="app.closeModal()" class="text-white/50 hover:text-white"><svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div id="modal-content" class="overflow-y-auto p-2 grid grid-cols-2 gap-2"></div>
-            <div id="modal-empty" class="hidden p-4 text-center text-white/40 text-sm">No quedan equipos disponibles.</div>
+            <div id="modal-empty" class="hidden p-4 text-center text-white/40">No hay equipos disponibles.</div>
         </div>
     </div>
 
     <script>
-        const DATA = {
+        // --- CONFIGURACIÓN DE EQUIPOS Y DATOS ---
+        const GROUP_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+        
+        const TEAMS_DB = {
             1: [
                 { id: 'can', name: 'Canadá', flag: '🇨🇦', conf: 'CONCACAF' }, { id: 'mex', name: 'México', flag: '🇲🇽', conf: 'CONCACAF' },
                 { id: 'usa', name: 'EE.UU.', flag: '🇺🇸', conf: 'CONCACAF' }, { id: 'esp', name: 'España', flag: '🇪🇸', conf: 'UEFA' },
@@ -140,312 +196,362 @@
                 { id: 'jor', name: 'Jordania', flag: '🇯🇴', conf: 'AFC' }, { id: 'cpv', name: 'Cabo Verde', flag: '🇨🇻', conf: 'CAF' },
                 { id: 'gha', name: 'Ghana', flag: '🇬🇭', conf: 'CAF' }, { id: 'cuw', name: 'Curazao', flag: '🇨🇼', conf: 'CONCACAF' },
                 { id: 'hai', name: 'Haití', flag: '🇭🇹', conf: 'CONCACAF' }, { id: 'nzl', name: 'N. Zelanda', flag: '🇳🇿', conf: 'OFC' },
-                { id: 'uefa1', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' }, { id: 'uefa2', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' },
-                { id: 'uefa3', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' }, { id: 'uefa4', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' },
+                { id: 'uefa1', name: 'Repechaje UEFA', flag: '🇪🇺', conf: 'UEFA' }, { id: 'uefa2', name: 'Repechaje UEFA', flag: '🇪🇺', conf: 'UEFA' },
+                { id: 'uefa3', name: 'Repechaje UEFA', flag: '🇪🇺', conf: 'UEFA' }, { id: 'uefa4', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' },
                 { id: 'fifa1', name: 'Rep. FIFA', flag: '🏳️', conf: 'INT' }, { id: 'fifa2', name: 'Rep. FIFA', flag: '🏳️', conf: 'INT' },
             ]
         };
 
-        const GROUP_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+        const findT = (id) => Object.values(TEAMS_DB).flat().find(t => t.id === id);
+
+        // PREDICCIONES HARDCODEADAS (INMUTABLES)
+        const PREDICTS = {
+            gianni: [
+                { name: 'A', x2: false, slots: {1: findT('mex'), 2: findT('mar'), 3: findT('sco'), 4: findT('uefa1')} },
+                { name: 'B', x2: false, slots: {1: findT('can'), 2: findT('uru'), 3: findT('nor'), 4: findT('uefa2')} },
+                { name: 'C', x2: false, slots: {1: findT('esp'), 2: findT('jpn'), 3: findT('par'), 4: findT('cpv')} },
+                { name: 'D', x2: false, slots: {1: findT('usa'), 2: findT('cro'), 3: findT('qat'), 4: findT('gha')} },
+                { name: 'E', x2: false, slots: {1: findT('por'), 2: findT('kor'), 3: findT('rsa'), 4: findT('uefa3')} },
+                { name: 'F', x2: false, slots: {1: findT('eng'), 2: findT('sen'), 3: findT('uzb'), 4: findT('cuw')} },
+                { name: 'G', x2: true,  slots: {1: findT('bra'), 2: findT('sui'), 3: findT('pan'), 4: findT('nzl')} },
+                { name: 'H', x2: false, slots: {1: findT('bel'), 2: findT('col'), 3: findT('tun'), 4: findT('jor')} },
+                { name: 'I', x2: false, slots: {1: findT('fra'), 2: findT('ecu'), 3: findT('alg'), 4: findT('hai')} },
+                { name: 'J', x2: false, slots: {1: findT('arg'), 2: findT('irn'), 3: findT('egy'), 4: findT('uefa4')} },
+                { name: 'K', x2: false, slots: {1: findT('ger'), 2: findT('aut'), 3: findT('ksa'), 4: findT('fifa1')} },
+                { name: 'L', x2: false, slots: {1: findT('ned'), 2: findT('aus'), 3: findT('civ'), 4: findT('fifa2')} }
+            ],
+            tici: [
+                { name: 'A', x2: false, slots: {1: findT('mex'), 2: findT('col'), 3: findT('sco'), 4: findT('uefa1')} },
+                { name: 'B', x2: false, slots: {1: findT('can'), 2: findT('sui'), 3: findT('ksa'), 4: findT('fifa1')} },
+                { name: 'C', x2: false, slots: {1: findT('arg'), 2: findT('irn'), 3: findT('alg'), 4: findT('nzl')} },
+                { name: 'D', x2: false, slots: {1: findT('usa'), 2: findT('ecu'), 3: findT('civ'), 4: findT('uefa2')} },
+                { name: 'E', x2: false, slots: {1: findT('por'), 2: findT('jpn'), 3: findT('rsa'), 4: findT('cuw')} },
+                { name: 'F', x2: false, slots: {1: findT('bel'), 2: findT('cro'), 3: findT('egy'), 4: findT('fifa2')} },
+                { name: 'G', x2: false, slots: {1: findT('esp'), 2: findT('uru'), 3: findT('nor'), 4: findT('gha')} },
+                { name: 'H', x2: false, slots: {1: findT('ned'), 2: findT('mar'), 3: findT('qat'), 4: findT('uefa3')} },
+                { name: 'I', x2: false, slots: {1: findT('fra'), 2: findT('aus'), 3: findT('par'), 4: findT('cpv')} },
+                { name: 'J', x2: false, slots: {1: findT('bra'), 2: findT('kor'), 3: findT('tun'), 4: findT('uefa4')} },
+                { name: 'K', x2: true,  slots: {1: findT('eng'), 2: findT('aut'), 3: findT('uzb'), 4: findT('hai')} },
+                { name: 'L', x2: false, slots: {1: findT('ger'), 2: findT('sen'), 3: findT('pan'), 4: findT('jor')} }
+            ]
+        };
 
         class App {
             constructor() {
-                this.state = {
-                    groups: [],
-                    modalOpen: false,
-                    selectionTarget: { groupIndex: -1, bombo: 1 }
-                };
+                this.view = 'real';
+                this.realGroups = [];
+                this.scoreHistory = [0]; // Historial de diferencial (G - T)
+                this.chart = null;
+                
                 this.init();
             }
 
             init() {
-                this.reset();
+                // Init grupos vacios
+                this.realGroups = GROUP_NAMES.map(letter => ({ name: letter, slots: {1:null,2:null,3:null,4:null} }));
+                // Set Hosts
+                this.realGroups[0].slots[1] = findT('mex');
+                this.realGroups[1].slots[1] = findT('can');
+                this.realGroups[3].slots[1] = findT('usa');
+
+                this.renderGrid();
+                this.updateScores(false); // No push to history on init
             }
 
-            reset() {
-                this.state.groups = GROUP_NAMES.map(letter => ({
-                    name: letter,
-                    isDoublePoints: false,
-                    slots: { 1: null, 2: null, 3: null, 4: null }
-                }));
+            switchView(viewName) {
+                this.view = viewName;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'text-black', 'bg-white', 'scale-105'));
+                document.getElementById('tab-'+viewName).classList.add('active', 'text-black', 'bg-white', 'scale-105');
 
-                // ASIGNAR HOSTS FIJOS
-                this.state.groups[0].slots[1] = DATA[1].find(t => t.id === 'mex'); // A
-                this.state.groups[1].slots[1] = DATA[1].find(t => t.id === 'can'); // B
-                this.state.groups[3].slots[1] = DATA[1].find(t => t.id === 'usa'); // D
+                const gridView = document.getElementById('grid-view');
+                const resultsView = document.getElementById('results-view');
+                const liveBar = document.getElementById('live-bar');
 
-                this.render();
+                if (viewName === 'results') {
+                    gridView.classList.add('hidden');
+                    resultsView.classList.remove('hidden');
+                    liveBar.classList.add('translate-y-full'); // Ocultar barra flotante
+                    this.renderResults();
+                } else {
+                    gridView.classList.remove('hidden');
+                    resultsView.classList.add('hidden');
+                    liveBar.classList.remove('translate-y-full'); // Mostrar barra flotante
+                    this.renderGrid();
+                }
             }
 
-            isLocked(gIndex, b) {
-                // México (0,1), Canadá (1,1), USA (3,1) están bloqueados
-                if (b !== 1) return false;
-                if (gIndex === 0 || gIndex === 1 || gIndex === 3) return true;
-                return false;
-            }
-
-            // Nueva función: Verificar si el grupo permite x2
-            isX2Allowed(gIndex) {
-                // No permitido en A (0), B (1), D (3)
-                return gIndex !== 0 && gIndex !== 1 && gIndex !== 3;
-            }
-
-            render() {
-                this.renderMainGrid();
-                this.renderCaptureGrid();
-            }
-
-            renderMainGrid() {
+            renderGrid() {
                 const container = document.getElementById('groups-grid');
                 container.innerHTML = '';
 
-                this.state.groups.forEach((group, gIndex) => {
+                let groups = this.realGroups;
+                if(this.view === 'gianni') groups = PREDICTS.gianni;
+                if(this.view === 'tici') groups = PREDICTS.tici;
+
+                groups.forEach((group, gIndex) => {
                     const el = document.createElement('div');
-                    
-                    const wrapperClass = group.isDoublePoints 
-                        ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)] bg-gradient-to-b from-[#132554] to-[#0f172a]'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10';
-                    
-                    const headerBg = group.isDoublePoints ? 'bg-yellow-500/20 border-yellow-500/50' : 'bg-black/20 border-white/5';
-                    const titleColor = group.isDoublePoints ? 'text-yellow-400' : 'text-white';
-                    
-                    // Lógica del botón x2
-                    let x2ButtonHTML = '';
-                    if (this.isX2Allowed(gIndex)) {
-                        const btnClass = group.isDoublePoints 
-                            ? 'bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300' 
-                            : 'bg-transparent text-white/50 border-white/20 hover:text-yellow-400 hover:border-yellow-400';
-                        const starFill = group.isDoublePoints ? 'black' : 'none';
-                        
-                        x2ButtonHTML = `
-                            <button onclick="app.toggleDoublePoints(${gIndex})" class="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors border ${btnClass}">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="${starFill}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                x2
-                            </button>
-                        `;
+                    let wrapper = 'bg-white/5 border-white/10';
+                    let header = 'bg-black/20 text-white/80';
+                    let isX2 = (this.view !== 'real' && group.x2);
+
+                    if(isX2) {
+                        wrapper = 'bg-gradient-to-b from-yellow-900/40 to-black/40 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]';
+                        header = 'bg-yellow-500/10 text-yellow-400 border-b border-yellow-500/20';
                     }
 
-                    el.className = `rounded-xl overflow-hidden border transition-all duration-300 ${wrapperClass}`;
+                    const x2Badge = isX2 ? `<span class="bg-yellow-400 text-black text-[9px] px-1.5 py-0.5 rounded font-bold ml-2">x2</span>` : '';
+
+                    el.className = `rounded-xl overflow-hidden border transition-all ${wrapper}`;
                     el.innerHTML = `
-                        <div class="flex justify-between items-center px-3 py-2 border-b ${headerBg}">
-                            <span class="font-black text-lg ${titleColor}">GRUPO ${group.name}</span>
-                            ${x2ButtonHTML}
+                        <div class="flex justify-between items-center px-3 py-2 ${header}">
+                            <div class="flex items-center"><span class="font-black text-lg">GRUPO ${group.name}</span>${x2Badge}</div>
                         </div>
-                        <div class="p-2 space-y-1.5">
-                            ${[1, 2, 3, 4].map(b => this.getSlotHTML(group.slots[b], gIndex, b)).join('')}
-                        </div>
+                        <div class="p-2 space-y-1">${[1,2,3,4].map(b => this.getSlotHTML(group.slots[b], gIndex, b)).join('')}</div>
                     `;
                     container.appendChild(el);
                 });
             }
 
             getSlotHTML(team, gIndex, b) {
-                const locked = this.isLocked(gIndex, b);
+                const isReal = (this.view === 'real');
+                const isHost = (b === 1 && [0,1,3].includes(gIndex));
                 
-                if (team) {
-                    const cursorClass = locked ? 'cursor-default border-yellow-500/30 bg-yellow-900/10' : 'cursor-pointer border-white/5 hover:bg-white/20';
-                    const clickEvent = locked ? '' : `onclick="app.handleSlotClick(${gIndex}, ${b})"`;
-                    const lockIcon = locked ? '<svg class="w-3 h-3 text-yellow-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>' : '';
+                if(team) {
+                    let badge = "bg-black/30 text-white/50";
+                    if(team.id.startsWith('fifa')) badge = "bg-purple-500/20 text-purple-300";
+                    if(team.id.startsWith('uefa') && team.name.includes('Rep')) badge = "bg-blue-500/20 text-blue-300";
+                    
+                    const cursor = (isReal && !isHost) ? 'cursor-pointer hover:bg-white/10' : 'cursor-default';
+                    const lock = (isReal && isHost) ? '<span class="ml-auto text-[10px] opacity-30">🔒</span>' : '';
 
-                    return `
-                    <div ${clickEvent} class="h-10 flex items-center px-3 rounded-lg transition-all border bg-white/10 ${cursorClass}">
-                        <span class="text-xl mr-3">${team.flag}</span>
-                        <span class="font-bold text-sm truncate uppercase flex-1 text-white">${team.name}</span>
-                        <span class="text-[9px] font-bold bg-black/40 px-1.5 py-0.5 rounded text-white/60 ml-2">${team.conf}</span>
-                        ${lockIcon}
+                    return `<div ${isReal && !isHost ? `onclick="app.slotClick(${gIndex},${b})"` : ''} class="h-9 flex items-center px-2 rounded-lg border border-white/5 bg-white/5 ${cursor}">
+                        <span class="text-xl mr-2">${team.flag}</span>
+                        <span class="font-bold text-xs truncate uppercase text-white">${team.name}</span>
+                        <span class="text-[9px] font-bold px-1.5 rounded ml-2 ${badge}">${team.conf}</span>${lock}
                     </div>`;
                 } else {
-                    return `
-                    <div onclick="app.handleSlotClick(${gIndex}, ${b})" class="h-10 flex items-center px-3 rounded-lg cursor-pointer transition-all border bg-black/20 border-dashed border-white/10 hover:border-white/30 text-white/30">
-                        <span class="mr-2 opacity-50 font-medium text-xs">B${b}</span>
-                        <span class="text-xs font-medium">Seleccionar...</span>
-                    </div>`;
+                    if(!isReal) return `<div class="h-9 flex items-center px-2 rounded-lg border border-dashed border-white/5 opacity-30"><span class="text-xs">Vacío</span></div>`;
+                    return `<div onclick="app.slotClick(${gIndex},${b})" class="h-9 flex items-center px-2 rounded-lg cursor-pointer border border-dashed border-white/10 bg-black/20 hover:border-white/30 group"><span class="mr-2 text-white/20 font-bold text-xs">B${b}</span><span class="text-xs text-white/30 group-hover:text-white/60">Seleccionar...</span></div>`;
                 }
             }
 
-            renderCaptureGrid() {
-                const container = document.getElementById('capture-grid');
+            slotClick(g, b) {
+                if(this.view !== 'real') return;
+                if(this.realGroups[g].slots[b]) {
+                    this.realGroups[g].slots[b] = null;
+                } else {
+                    this.openModal(g, b);
+                    return; // Wait for modal
+                }
+                this.renderGrid();
+                this.updateScores(true); // Update history
+            }
+
+            updateScores(saveHistory = false) {
+                const gScore = this.calcScore(PREDICTS.gianni, this.realGroups).total;
+                const tScore = this.calcScore(PREDICTS.tici, this.realGroups).total;
+                const diff = gScore - tScore;
+
+                if(saveHistory) this.scoreHistory.push(diff);
+
+                ['live-score-gianni', 'final-score-gianni'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.innerText = gScore.toFixed(2);
+                });
+                ['live-score-tici', 'final-score-tici'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.innerText = tScore.toFixed(2);
+                });
+
+                const diffEl = document.getElementById('live-diff');
+                diffEl.innerText = (diff > 0 ? '+' : '') + diff.toFixed(2);
+                diffEl.className = `text-xl font-bold leading-none ${diff > 0 ? 'text-blue-400' : (diff < 0 ? 'text-red-400' : 'text-white')}`;
+
+                // Winner Badge
+                const badge = document.getElementById('winner-badge');
+                if(badge) {
+                    if(diff > 0) { badge.innerText = "Gana Gianni"; badge.className = "inline-block px-6 py-2 rounded-full font-bold text-sm bg-blue-600 text-white"; }
+                    else if(diff < 0) { badge.innerText = "Gana Tici"; badge.className = "inline-block px-6 py-2 rounded-full font-bold text-sm bg-red-600 text-white"; }
+                    else { badge.innerText = "Empate"; badge.className = "inline-block px-6 py-2 rounded-full font-bold text-sm bg-gray-600 text-white"; }
+                }
+            }
+
+            calcScore(preds, real) {
+                let total = 0;
+                let details = [];
+                preds.forEach((pGroup, i) => {
+                    const rGroup = real[i];
+                    let locPts = 0;
+                    let hitsList = [];
+                    let locLog = [];
+
+                    [1,2,3,4].forEach(slot => {
+                        const pTeam = pGroup.slots[slot];
+                        if(!pTeam) return;
+                        const match = Object.values(rGroup.slots).some(rt => this.areEqual(pTeam, rt));
+                        if(match) hitsList.push(pTeam.name);
+
+                        if(['mex','can','usa'].includes(pTeam.id)) return;
+                        if(match) {
+                            let pts = 1;
+                            if(pTeam.id.startsWith('fifa')) pts = 0.5;
+                            else if(pTeam.id.startsWith('uefa') && pTeam.name.includes('Rep')) pts = 0.25;
+                            locPts += pts;
+                            locLog.push(`${pTeam.flag} (+${pts})`);
+                        }
+                    });
+
+                    let compPts = 0;
+                    if(hitsList.length === 2) compPts = 1;
+                    if(hitsList.length === 3) compPts = 2;
+                    if(hitsList.length === 4) compPts = 3;
+
+                    let gTotal = locPts + compPts;
+                    if(pGroup.x2) gTotal *= 2;
+                    total += gTotal;
+
+                    details.push({ 
+                        name: pGroup.name, total: gTotal, loc: locPts, comp: compPts, locLog, hits: hitsList.length, x2: pGroup.x2 
+                    });
+                });
+                return { total, details };
+            }
+
+            areEqual(t1, t2) {
+                if(!t1 || !t2) return false;
+                if(t1.id === t2.id) return true;
+                if(t1.id.startsWith('fifa') && t2.id.startsWith('fifa')) return true;
+                if(t1.id.startsWith('uefa') && t2.id.startsWith('uefa') && t1.name.includes('Rep') && t2.name.includes('Rep')) return true;
+                return false;
+            }
+
+            renderResults() {
+                // Render Details
+                const resG = this.calcScore(PREDICTS.gianni, this.realGroups);
+                const resT = this.calcScore(PREDICTS.tici, this.realGroups);
+                const container = document.getElementById('details-list');
                 container.innerHTML = '';
 
-                this.state.groups.forEach(group => {
-                    const el = document.createElement('div');
-                    let styleClass = 'bg-white/10 border border-white/10';
-                    let inlineStyle = '';
-                    let titleClass = 'text-white';
-                    let headerBg = 'bg-black/20';
-
-                    if (group.isDoublePoints) {
-                        styleClass = 'shadow-[0_0_10px_rgba(251,191,36,0.6)] border border-yellow-300 z-10';
-                        inlineStyle = 'background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);';
-                        titleClass = 'text-black';
-                        headerBg = 'border-b border-black/10';
-                    }
-
-                    el.className = `relative rounded-lg overflow-hidden flex flex-col justify-between ${styleClass}`;
-                    if (inlineStyle) el.style = inlineStyle;
-
-                    const flagsHTML = [1, 2, 3, 4].map(b => `
-                        <div class="flex items-center justify-center w-full h-full">
-                            <span class="text-2xl drop-shadow-sm leading-none transform -translate-y-[1px]">
-                                ${group.slots[b] ? group.slots[b].flag : '<span class="opacity-10 text-lg scale-75">⚪</span>'}
-                            </span>
+                GROUP_NAMES.forEach((letter, i) => {
+                    const g = resG.details[i];
+                    const t = resT.details[i];
+                    
+                    const div = document.createElement('div');
+                    div.className = "bg-white/5 rounded-xl border border-white/10 overflow-hidden";
+                    div.innerHTML = `
+                        <div onclick="this.nextElementSibling.classList.toggle('open')" class="p-3 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <span class="text-2xl font-black text-white/20 w-8 text-center">${letter}</span>
+                                <div class="grid grid-cols-2 gap-6 text-xs w-48">
+                                    <div class="border-r border-white/10 pr-2">
+                                        <div class="${g.x2 ? 'text-yellow-400 font-bold' : 'text-blue-300'}">G: ${g.total.toFixed(2)}</div>
+                                        <div class="opacity-50">${g.hits}/4</div>
+                                    </div>
+                                    <div class="pl-2">
+                                        <div class="${t.x2 ? 'text-yellow-400 font-bold' : 'text-red-300'}">T: ${t.total.toFixed(2)}</div>
+                                        <div class="opacity-50">${t.hits}/4</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <svg class="w-4 h-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </div>
-                    `).join('');
-
-                    el.innerHTML = `
-                        <div class="text-center py-0.5 ${headerBg}">
-                            <span class="font-black text-sm ${titleClass}">${group.name}</span>
+                        <div class="detail-content bg-black/30 text-[10px]">
+                            <div class="p-3 grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-blue-400 font-bold mb-1">DETALLE GIANNI</div>
+                                    <div class="text-white/60">Ubic: ${g.locLog.join(' ') || '-'}</div>
+                                    <div class="text-white/60">Comp: +${g.comp}</div>
+                                </div>
+                                <div>
+                                    <div class="text-red-400 font-bold mb-1">DETALLE TICI</div>
+                                    <div class="text-white/60">Ubic: ${t.locLog.join(' ') || '-'}</div>
+                                    <div class="text-white/60">Comp: +${t.comp}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="p-0.5 grid grid-cols-2 gap-x-1 gap-y-0 items-center justify-items-center grow">
-                            ${flagsHTML}
-                        </div>
-                        ${group.isDoublePoints ? '<div class="absolute bottom-0 w-full text-center bg-black/10 leading-none pb-0.5"><span class="text-[6px] font-bold text-black uppercase tracking-widest">x2</span></div>' : ''}
                     `;
-                    container.appendChild(el);
+                    container.appendChild(div);
+                });
+
+                // Render Chart
+                this.renderChart();
+            }
+
+            renderChart() {
+                const ctx = document.getElementById('diffChart').getContext('2d');
+                if(this.chart) this.chart.destroy();
+
+                // Datos para el grafico
+                const labels = this.scoreHistory.map((_, i) => i === 0 ? 'Inicio' : `${i}`);
+                const data = this.scoreHistory;
+
+                // Color dinámico (Si es positivo azul, negativo rojo)
+                const segmentColor = (ctx, p0, p1) => p0.y < 0 ? 'rgba(239,68,68,1)' : 'rgba(59,130,246,1)';
+
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Diferencia (Gianni - Tici)',
+                            data: data,
+                            borderColor: '#8b5cf6', // Color base violeta como referencia
+                            backgroundColor: (context) => {
+                                const ctx = context.chart.ctx;
+                                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Azul arriba
+                                gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.1)'); // Violeta medio
+                                gradient.addColorStop(1, 'rgba(239, 68, 68, 0.5)'); // Rojo abajo
+                                return gradient;
+                            },
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: 'rgba(255,255,255,0.5)' }
+                            },
+                            x: { display: false }
+                        }
+                    }
                 });
             }
 
-            handleSlotClick(gIndex, bombo) {
-                if (this.isLocked(gIndex, bombo)) return;
-                if (this.state.groups[gIndex].slots[bombo]) {
-                    this.state.groups[gIndex].slots[bombo] = null;
-                    this.render();
-                } else {
-                    this.openModal(gIndex, bombo);
-                }
-            }
-
-            toggleDoublePoints(gIndex) {
-                if (!this.isX2Allowed(gIndex)) return; // Protección extra
-                this.state.groups[gIndex].isDoublePoints = !this.state.groups[gIndex].isDoublePoints;
-                this.render();
-            }
-
-            openModal(gIndex, bombo) {
-                this.state.selectionTarget = { groupIndex: gIndex, bombo };
-                document.getElementById('modal-title').innerText = `Elegir Equipo (Bombo ${bombo})`;
-                const container = document.getElementById('modal-content');
-                container.innerHTML = '';
+            openModal(g, b) {
+                this.selectionTarget = { g, b };
+                const used = this.realGroups.map(gr => gr.slots[b]?.id).filter(Boolean);
+                const avail = TEAMS_DB[b].filter(t => !used.includes(t.id));
+                const cont = document.getElementById('modal-content');
+                cont.innerHTML = '';
                 
-                const available = this.getAvailableTeams(bombo);
-                
-                if (available.length === 0) {
-                    document.getElementById('modal-empty').classList.remove('hidden');
-                } else {
+                if(avail.length === 0) document.getElementById('modal-empty').classList.remove('hidden');
+                else {
                     document.getElementById('modal-empty').classList.add('hidden');
-                    available.forEach(team => {
-                        const selectable = this.checkConstraint(this.state.groups[gIndex], team);
+                    avail.forEach(t => {
                         const btn = document.createElement('button');
-                        const baseClass = "flex flex-col p-3 rounded-xl border transition-all text-left group";
-                        const activeClass = "bg-white/5 hover:bg-white/10 border-white/5 cursor-pointer";
-                        const disabledClass = "bg-black/20 border-transparent opacity-40 cursor-not-allowed grayscale";
-                        const badgeClass = selectable ? "bg-white/10 text-white/70" : "bg-red-500/20 text-red-300";
-
-                        btn.className = `${baseClass} ${selectable ? activeClass : disabledClass}`;
-                        btn.disabled = !selectable;
-                        btn.onclick = () => { if(selectable) this.selectTeam(team); };
-
-                        btn.innerHTML = `
-                            <div class="flex justify-between w-full mb-2">
-                                <span class="text-2xl transform group-hover:scale-110 transition-transform">${team.flag}</span>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded h-fit ${badgeClass}">${team.conf}</span>
-                            </div>
-                            <span class="font-bold text-xs uppercase text-white truncate w-full">${team.name}</span>
-                        `;
-                        container.appendChild(btn);
+                        btn.className = `flex flex-col p-2 rounded border text-left bg-white/5 hover:bg-white/10 border-white/10`;
+                        btn.onclick = () => {
+                            this.realGroups[g].slots[b] = t;
+                            this.closeModal();
+                            this.renderGrid();
+                            this.updateScores(true);
+                        };
+                        btn.innerHTML = `<div class="flex justify-between items-center"><span class="text-xl">${t.flag}</span><span class="text-[9px] bg-white/10 px-1 rounded font-bold opacity-50">${t.conf}</span></div><span class="text-xs font-bold uppercase text-white truncate">${t.name}</span>`;
+                        cont.appendChild(btn);
                     });
                 }
-                
                 document.getElementById('selection-modal').classList.remove('hidden');
                 document.getElementById('selection-modal').classList.add('flex');
             }
-
-            closeModal() {
-                document.getElementById('selection-modal').classList.add('hidden');
-                document.getElementById('selection-modal').classList.remove('flex');
-            }
-
-            selectTeam(team) {
-                const { groupIndex, bombo } = this.state.selectionTarget;
-                this.state.groups[groupIndex].slots[bombo] = team;
-                this.closeModal();
-                this.render();
-            }
-
-            getAvailableTeams(bomboNum) {
-                const usedIds = this.state.groups.map(g => g.slots[bomboNum]?.id).filter(Boolean);
-                return DATA[bomboNum].filter(t => !usedIds.includes(t.id));
-            }
-
-            checkConstraint(group, newTeam) {
-                if (!newTeam) return true;
-                const currentTeams = Object.values(group.slots).filter(Boolean);
-                if (newTeam.conf === 'INT') return true;
-                const sameConfCount = currentTeams.filter(t => t.conf === newTeam.conf).length;
-                if (newTeam.conf === 'UEFA') return sameConfCount < 2;
-                return sameConfCount < 1;
-            }
-
-            autoFill() {
-                let attempt = 0;
-                while (attempt < 100) {
-                    attempt++;
-                    try {
-                        const newGroups = GROUP_NAMES.map(l => ({ name: l, isDoublePoints: false, slots: {1:null,2:null,3:null,4:null} }));
-                        
-                        // 1. ASIGNAR HOSTS
-                        newGroups[0].slots[1] = DATA[1].find(t => t.id === 'mex');
-                        newGroups[1].slots[1] = DATA[1].find(t => t.id === 'can');
-                        newGroups[3].slots[1] = DATA[1].find(t => t.id === 'usa');
-
-                        // 2. SORTEAR EL RESTO DEL BOMBO 1
-                        const fixedIds = ['mex', 'can', 'usa'];
-                        const remainingPot1 = DATA[1].filter(t => !fixedIds.includes(t.id));
-                        const shuffledPot1 = [...remainingPot1].sort(() => Math.random() - 0.5);
-
-                        let p1Index = 0;
-                        newGroups.forEach(g => {
-                            if (!g.slots[1]) {
-                                g.slots[1] = shuffledPot1[p1Index++];
-                            }
-                        });
-
-                        // 3. SORTEAR OTROS BOMBOS
-                        const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
-                        [2, 3, 4].forEach(potNum => {
-                            let potTeams = shuffle(DATA[potNum]);
-                            for (let i = 0; i < 12; i++) {
-                                const group = newGroups[i];
-                                const idx = potTeams.findIndex(t => this.checkConstraint(group, t));
-                                if (idx === -1) throw new Error("Deadlock");
-                                group.slots[potNum] = potTeams[idx];
-                                potTeams.splice(idx, 1);
-                            }
-                        });
-                        
-                        this.state.groups = newGroups;
-                        this.render();
-                        return;
-
-                    } catch (e) {
-                        continue;
-                    }
-                }
-                alert("No se pudo generar una combinación válida. Intenta de nuevo.");
-            }
-
-            toggleCaptureMode(show) {
-                const captureView = document.getElementById('capture-view');
-                if (show) {
-                    captureView.classList.remove('hidden');
-                    captureView.classList.add('flex');
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    captureView.classList.add('hidden');
-                    captureView.classList.remove('flex');
-                    document.body.style.overflow = 'auto';
-                }
-            }
+            closeModal() { document.getElementById('selection-modal').classList.add('hidden'); document.getElementById('selection-modal').classList.remove('flex'); }
         }
 
         const app = new App();
