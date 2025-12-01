@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulador Sorteo Mundial 2026</title>
+    <title>Simulador Sorteo Mundial 2026 - Hosts Locked</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Fuentes y Estilos Base */
@@ -17,45 +17,23 @@
             overflow-x: hidden;
         }
 
-        /* Scrollbar personalizado para el modal */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2); 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2); 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.4); 
-        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 
         /* Animaciones */
-        .fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* Estilo Dorado x2 */
-        .gold-card {
-            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%) !important;
-            border-color: #fcd34d !important;
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.6) !important;
-        }
-        .gold-text {
-            color: black !important;
-        }
-
-        /* Ajustes Mobile Compacto */
+        /* Grid Compacto Mobile */
         .compact-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0.35rem; /* Gap muy pequeño */
+            gap: 0.35rem; 
         }
     </style>
 </head>
@@ -88,21 +66,17 @@
     <!-- MODO EDICION (MAIN GRID) -->
     <div id="editor-view" class="flex-grow p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
         <div id="groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <!-- Los grupos se generarán aquí con JS -->
+            <!-- JS Inject -->
         </div>
     </div>
 
     <!-- MODO CAPTURA COMPACTO (Overlay) -->
     <div id="capture-view" class="fixed inset-0 z-50 bg-[#0a1829] hidden flex-col items-center justify-center p-2">
-        
-        <!-- Botón Salir -->
         <button onclick="app.toggleCaptureMode(false)" class="absolute top-2 right-2 z-[60] bg-black/60 text-white p-2 rounded-full backdrop-blur-md border border-white/20 hover:bg-white/20 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
         <div class="w-full max-w-md bg-gradient-to-br from-green-600 via-blue-900 to-green-800 p-3 rounded-2xl shadow-2xl relative flex flex-col h-auto max-h-full aspect-[9/16] sm:aspect-auto">
-            
-            <!-- Decoración fondo -->
             <div class="absolute top-0 left-0 w-32 h-32 bg-green-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 pointer-events-none"></div>
             <div class="absolute bottom-0 right-0 w-32 h-32 bg-blue-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 pointer-events-none"></div>
 
@@ -112,12 +86,9 @@
                         Predicción <span class="text-green-400">2026</span>
                     </h1>
                 </div>
-
-                <!-- GRID COMPACTO PARA CAPTURA -->
                 <div id="capture-grid" class="compact-grid grow">
-                    <!-- Grupos compactos generados por JS -->
+                    <!-- JS Inject -->
                 </div>
-
                 <div class="text-center mt-2 shrink-0 opacity-60 text-[8px] font-bold tracking-[0.3em]">
                     SIMULADOR NO OFICIAL
                 </div>
@@ -134,15 +105,11 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            
-            <div id="modal-content" class="overflow-y-auto p-2 grid grid-cols-2 gap-2">
-                <!-- Botones de equipos -->
-            </div>
+            <div id="modal-content" class="overflow-y-auto p-2 grid grid-cols-2 gap-2"></div>
             <div id="modal-empty" class="hidden p-4 text-center text-white/40 text-sm">No quedan equipos disponibles.</div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
         const DATA = {
             1: [
@@ -201,7 +168,20 @@
                     isDoublePoints: false,
                     slots: { 1: null, 2: null, 3: null, 4: null }
                 }));
+
+                // ASIGNAR HOSTS FIJOS
+                this.state.groups[0].slots[1] = DATA[1].find(t => t.id === 'mex'); // A
+                this.state.groups[1].slots[1] = DATA[1].find(t => t.id === 'can'); // B
+                this.state.groups[3].slots[1] = DATA[1].find(t => t.id === 'usa'); // D
+
                 this.render();
+            }
+
+            isLocked(gIndex, b) {
+                // México (0,1), Canadá (1,1), USA (3,1) están bloqueados
+                if (b !== 1) return false;
+                if (gIndex === 0 || gIndex === 1 || gIndex === 3) return true;
+                return false;
             }
 
             render() {
@@ -209,7 +189,6 @@
                 this.renderCaptureGrid();
             }
 
-            // --- RENDERIZADO DEL EDITOR (Tarjetas grandes) ---
             renderMainGrid() {
                 const container = document.getElementById('groups-grid');
                 container.innerHTML = '';
@@ -217,7 +196,6 @@
                 this.state.groups.forEach((group, gIndex) => {
                     const el = document.createElement('div');
                     
-                    // Clases dinámicas para estilo normal o dorado
                     const wrapperClass = group.isDoublePoints 
                         ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)] bg-gradient-to-b from-[#132554] to-[#0f172a]'
                         : 'border-white/10 bg-white/5 hover:bg-white/10';
@@ -247,12 +225,20 @@
             }
 
             getSlotHTML(team, gIndex, b) {
+                const locked = this.isLocked(gIndex, b);
+                
                 if (team) {
+                    // Si está bloqueado, estilo diferente y sin onclick
+                    const cursorClass = locked ? 'cursor-default border-yellow-500/30 bg-yellow-900/10' : 'cursor-pointer border-white/5 hover:bg-white/20';
+                    const clickEvent = locked ? '' : `onclick="app.handleSlotClick(${gIndex}, ${b})"`;
+                    const lockIcon = locked ? '<svg class="w-3 h-3 text-yellow-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>' : '';
+
                     return `
-                    <div onclick="app.handleSlotClick(${gIndex}, ${b})" class="h-10 flex items-center px-3 rounded-lg cursor-pointer transition-all border bg-white/10 border-white/5 hover:bg-white/20">
+                    <div ${clickEvent} class="h-10 flex items-center px-3 rounded-lg transition-all border bg-white/10 ${cursorClass}">
                         <span class="text-xl mr-3">${team.flag}</span>
                         <span class="font-bold text-sm truncate uppercase flex-1 text-white">${team.name}</span>
                         <span class="text-[9px] font-bold bg-black/40 px-1.5 py-0.5 rounded text-white/60 ml-2">${team.conf}</span>
+                        ${lockIcon}
                     </div>`;
                 } else {
                     return `
@@ -263,15 +249,12 @@
                 }
             }
 
-            // --- RENDERIZADO CAPTURA (Compacto) ---
             renderCaptureGrid() {
                 const container = document.getElementById('capture-grid');
                 container.innerHTML = '';
 
                 this.state.groups.forEach(group => {
                     const el = document.createElement('div');
-                    
-                    // Estilo normal vs dorado (x2)
                     let styleClass = 'bg-white/10 border border-white/10';
                     let inlineStyle = '';
                     let titleClass = 'text-white';
@@ -287,7 +270,6 @@
                     el.className = `relative rounded-lg overflow-hidden flex flex-col justify-between ${styleClass}`;
                     if (inlineStyle) el.style = inlineStyle;
 
-                    // Grid de banderas internas
                     const flagsHTML = [1, 2, 3, 4].map(b => `
                         <div class="flex items-center justify-center w-full h-full">
                             <span class="text-2xl drop-shadow-sm leading-none transform -translate-y-[1px]">
@@ -309,14 +291,14 @@
                 });
             }
 
-            // --- LOGICA INTERACCIÓN ---
             handleSlotClick(gIndex, bombo) {
+                // Bloqueo de Hosts
+                if (this.isLocked(gIndex, bombo)) return;
+
                 if (this.state.groups[gIndex].slots[bombo]) {
-                    // Borrar
                     this.state.groups[gIndex].slots[bombo] = null;
                     this.render();
                 } else {
-                    // Abrir modal
                     this.openModal(gIndex, bombo);
                 }
             }
@@ -326,7 +308,6 @@
                 this.render();
             }
 
-            // --- MODAL ---
             openModal(gIndex, bombo) {
                 this.state.selectionTarget = { groupIndex: gIndex, bombo };
                 document.getElementById('modal-title').innerText = `Elegir Equipo (Bombo ${bombo})`;
@@ -342,7 +323,6 @@
                     available.forEach(team => {
                         const selectable = this.checkConstraint(this.state.groups[gIndex], team);
                         const btn = document.createElement('button');
-                        
                         const baseClass = "flex flex-col p-3 rounded-xl border transition-all text-left group";
                         const activeClass = "bg-white/5 hover:bg-white/10 border-white/5 cursor-pointer";
                         const disabledClass = "bg-black/20 border-transparent opacity-40 cursor-not-allowed grayscale";
@@ -379,7 +359,6 @@
                 this.render();
             }
 
-            // --- LÓGICA DE NEGOCIO ---
             getAvailableTeams(bomboNum) {
                 const usedIds = this.state.groups.map(g => g.slots[bomboNum]?.id).filter(Boolean);
                 return DATA[bomboNum].filter(t => !usedIds.includes(t.id));
@@ -395,24 +374,35 @@
             }
 
             autoFill() {
-                // Backtracking simplificado (reintentos)
                 let attempt = 0;
                 while (attempt < 100) {
                     attempt++;
                     try {
                         const newGroups = GROUP_NAMES.map(l => ({ name: l, isDoublePoints: false, slots: {1:null,2:null,3:null,4:null} }));
-                        const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
                         
-                        // Bombo 1 (Cabezas)
-                        const b1 = shuffle(DATA[1]);
-                        newGroups.forEach((g, i) => g.slots[1] = b1[i]);
+                        // 1. ASIGNAR HOSTS (Siempre se asignan al iniciar el cálculo)
+                        newGroups[0].slots[1] = DATA[1].find(t => t.id === 'mex');
+                        newGroups[1].slots[1] = DATA[1].find(t => t.id === 'can');
+                        newGroups[3].slots[1] = DATA[1].find(t => t.id === 'usa');
 
-                        // Otros bombos
+                        // 2. SORTEAR EL RESTO DEL BOMBO 1
+                        const fixedIds = ['mex', 'can', 'usa'];
+                        const remainingPot1 = DATA[1].filter(t => !fixedIds.includes(t.id));
+                        const shuffledPot1 = [...remainingPot1].sort(() => Math.random() - 0.5);
+
+                        let p1Index = 0;
+                        newGroups.forEach(g => {
+                            if (!g.slots[1]) {
+                                g.slots[1] = shuffledPot1[p1Index++];
+                            }
+                        });
+
+                        // 3. SORTEAR OTROS BOMBOS
+                        const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
                         [2, 3, 4].forEach(potNum => {
                             let potTeams = shuffle(DATA[potNum]);
                             for (let i = 0; i < 12; i++) {
                                 const group = newGroups[i];
-                                // Buscar primer equipo válido
                                 const idx = potTeams.findIndex(t => this.checkConstraint(group, t));
                                 if (idx === -1) throw new Error("Deadlock");
                                 group.slots[potNum] = potTeams[idx];
@@ -420,7 +410,6 @@
                             }
                         });
                         
-                        // Si llegamos acá, éxito
                         this.state.groups = newGroups;
                         this.render();
                         return;
@@ -433,14 +422,11 @@
             }
 
             toggleCaptureMode(show) {
-                const mainHeader = document.getElementById('main-header');
-                const editorView = document.getElementById('editor-view');
                 const captureView = document.getElementById('capture-view');
-
                 if (show) {
                     captureView.classList.remove('hidden');
                     captureView.classList.add('flex');
-                    document.body.style.overflow = 'hidden'; // Evitar scroll en body
+                    document.body.style.overflow = 'hidden';
                 } else {
                     captureView.classList.add('hidden');
                     captureView.classList.remove('flex');
@@ -449,7 +435,6 @@
             }
         }
 
-        // Iniciar App
         const app = new App();
     </script>
 </body>
