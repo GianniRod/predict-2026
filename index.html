@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador Sorteo Mundial 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuentes y Estilos Base */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #047857 50%, #1e3a8a 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar personalizado para el modal */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4); 
+        }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Estilo Dorado x2 */
+        .gold-card {
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%) !important;
+            border-color: #fcd34d !important;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.6) !important;
+        }
+        .gold-text {
+            color: black !important;
+        }
+
+        /* Ajustes Mobile Compacto */
+        .compact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.35rem; /* Gap muy pequeño */
+        }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <!-- HEADER -->
+    <div id="main-header" class="bg-black/20 backdrop-blur-lg border-b border-white/10 p-4 sticky top-0 z-40 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <!-- Icono Trophy SVG -->
+                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21h8m-4-18v18m-6.5-6.5L12 9.5l6.5 6.5"></path><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path></svg>
+                <h1 class="text-xl font-bold tracking-wider drop-shadow-sm">SORTEO 2026</h1>
+            </div>
+            <div class="flex gap-2 text-sm font-bold">
+                <button onclick="app.autoFill()" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700 shadow-lg text-white">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l14.2-12.6c.8-1 2-1.7 3.3-1.7H22"/><path d="M2 6h1.4c1.3 0 2.5.6 3.3 1.7l14.2 12.6c.8 1 2 1.7 3.3 1.7H22"/></svg>
+                    Auto
+                </button>
+                <button onclick="app.reset()" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-transform active:scale-95 bg-red-600 hover:bg-red-700 shadow-lg text-white">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    Reset
+                </button>
+                <button onclick="app.toggleCaptureMode(true)" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-transform active:scale-95 bg-white text-green-700 hover:bg-gray-100 shadow-lg">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                    Captura
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODO EDICION (MAIN GRID) -->
+    <div id="editor-view" class="flex-grow p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
+        <div id="groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- Los grupos se generarán aquí con JS -->
+        </div>
+    </div>
+
+    <!-- MODO CAPTURA COMPACTO (Overlay) -->
+    <div id="capture-view" class="fixed inset-0 z-50 bg-[#0a1829] hidden flex-col items-center justify-center p-2">
+        
+        <!-- Botón Salir -->
+        <button onclick="app.toggleCaptureMode(false)" class="absolute top-2 right-2 z-[60] bg-black/60 text-white p-2 rounded-full backdrop-blur-md border border-white/20 hover:bg-white/20 transition-colors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+
+        <div class="w-full max-w-md bg-gradient-to-br from-green-600 via-blue-900 to-green-800 p-3 rounded-2xl shadow-2xl relative flex flex-col h-auto max-h-full aspect-[9/16] sm:aspect-auto">
+            
+            <!-- Decoración fondo -->
+            <div class="absolute top-0 left-0 w-32 h-32 bg-green-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 pointer-events-none"></div>
+            <div class="absolute bottom-0 right-0 w-32 h-32 bg-blue-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="text-center mb-2 shrink-0">
+                    <h1 class="text-2xl font-black uppercase tracking-tighter italic drop-shadow-lg leading-tight">
+                        Predicción <span class="text-green-400">2026</span>
+                    </h1>
+                </div>
+
+                <!-- GRID COMPACTO PARA CAPTURA -->
+                <div id="capture-grid" class="compact-grid grow">
+                    <!-- Grupos compactos generados por JS -->
+                </div>
+
+                <div class="text-center mt-2 shrink-0 opacity-60 text-[8px] font-bold tracking-[0.3em]">
+                    SIMULADOR NO OFICIAL
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE SELECCIÓN -->
+    <div id="selection-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-md fade-in">
+        <div class="bg-[#0f172a] border border-white/20 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 rounded-t-2xl">
+                <h3 id="modal-title" class="font-bold text-lg">Elegir Equipo</h3>
+                <button onclick="app.closeModal()" class="text-white/50 hover:text-white transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div id="modal-content" class="overflow-y-auto p-2 grid grid-cols-2 gap-2">
+                <!-- Botones de equipos -->
+            </div>
+            <div id="modal-empty" class="hidden p-4 text-center text-white/40 text-sm">No quedan equipos disponibles.</div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const DATA = {
+            1: [
+                { id: 'can', name: 'Canadá', flag: '🇨🇦', conf: 'CONCACAF' }, { id: 'mex', name: 'México', flag: '🇲🇽', conf: 'CONCACAF' },
+                { id: 'usa', name: 'EE.UU.', flag: '🇺🇸', conf: 'CONCACAF' }, { id: 'esp', name: 'España', flag: '🇪🇸', conf: 'UEFA' },
+                { id: 'arg', name: 'Argentina', flag: '🇦🇷', conf: 'CONMEBOL' }, { id: 'fra', name: 'Francia', flag: '🇫🇷', conf: 'UEFA' },
+                { id: 'eng', name: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', conf: 'UEFA' }, { id: 'bra', name: 'Brasil', flag: '🇧🇷', conf: 'CONMEBOL' },
+                { id: 'por', name: 'Portugal', flag: '🇵🇹', conf: 'UEFA' }, { id: 'ned', name: 'P. Bajos', flag: '🇳🇱', conf: 'UEFA' },
+                { id: 'bel', name: 'Bélgica', flag: '🇧🇪', conf: 'UEFA' }, { id: 'ger', name: 'Alemania', flag: '🇩🇪', conf: 'UEFA' },
+            ],
+            2: [
+                { id: 'cro', name: 'Croacia', flag: '🇭🇷', conf: 'UEFA' }, { id: 'mar', name: 'Marruecos', flag: '🇲🇦', conf: 'CAF' },
+                { id: 'col', name: 'Colombia', flag: '🇨🇴', conf: 'CONMEBOL' }, { id: 'uru', name: 'Uruguay', flag: '🇺🇾', conf: 'CONMEBOL' },
+                { id: 'sui', name: 'Suiza', flag: '🇨🇭', conf: 'UEFA' }, { id: 'jpn', name: 'Japón', flag: '🇯🇵', conf: 'AFC' },
+                { id: 'sen', name: 'Senegal', flag: '🇸🇳', conf: 'CAF' }, { id: 'irn', name: 'Irán', flag: '🇮🇷', conf: 'AFC' },
+                { id: 'kor', name: 'Corea Sur', flag: '🇰🇷', conf: 'AFC' }, { id: 'ecu', name: 'Ecuador', flag: '🇪🇨', conf: 'CONMEBOL' },
+                { id: 'aut', name: 'Austria', flag: '🇦🇹', conf: 'UEFA' }, { id: 'aus', name: 'Australia', flag: '🇦🇺', conf: 'AFC' },
+            ],
+            3: [
+                { id: 'nor', name: 'Noruega', flag: '🇳🇴', conf: 'UEFA' }, { id: 'pan', name: 'Panamá', flag: '🇵🇦', conf: 'CONCACAF' },
+                { id: 'egy', name: 'Egipto', flag: '🇪🇬', conf: 'CAF' }, { id: 'alg', name: 'Argelia', flag: '🇩🇿', conf: 'CAF' },
+                { id: 'sco', name: 'Escocia', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', conf: 'UEFA' }, { id: 'par', name: 'Paraguay', flag: '🇵🇾', conf: 'CONMEBOL' },
+                { id: 'tun', name: 'Túnez', flag: '🇹🇳', conf: 'CAF' }, { id: 'civ', name: 'C. Marfil', flag: '🇨🇮', conf: 'CAF' },
+                { id: 'uzb', name: 'Uzbekistán', flag: '🇺🇿', conf: 'AFC' }, { id: 'qat', name: 'Qatar', flag: '🇶🇦', conf: 'AFC' },
+                { id: 'ksa', name: 'Arabia S.', flag: '🇸🇦', conf: 'AFC' }, { id: 'rsa', name: 'Sudáfrica', flag: '🇿🇦', conf: 'CAF' },
+            ],
+            4: [
+                { id: 'jor', name: 'Jordania', flag: '🇯🇴', conf: 'AFC' }, { id: 'cpv', name: 'Cabo Verde', flag: '🇨🇻', conf: 'CAF' },
+                { id: 'gha', name: 'Ghana', flag: '🇬🇭', conf: 'CAF' }, { id: 'cuw', name: 'Curazao', flag: '🇨🇼', conf: 'CONCACAF' },
+                { id: 'hai', name: 'Haití', flag: '🇭🇹', conf: 'CONCACAF' }, { id: 'nzl', name: 'N. Zelanda', flag: '🇳🇿', conf: 'OFC' },
+                { id: 'uefa1', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' }, { id: 'uefa2', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' },
+                { id: 'uefa3', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' }, { id: 'uefa4', name: 'Rep. UEFA', flag: '🇪🇺', conf: 'UEFA' },
+                { id: 'fifa1', name: 'Rep. FIFA', flag: '🏳️', conf: 'INT' }, { id: 'fifa2', name: 'Rep. FIFA', flag: '🏳️', conf: 'INT' },
+            ]
+        };
+
+        const GROUP_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+
+        class App {
+            constructor() {
+                this.state = {
+                    groups: [],
+                    modalOpen: false,
+                    selectionTarget: { groupIndex: -1, bombo: 1 }
+                };
+                this.init();
+            }
+
+            init() {
+                this.reset();
+            }
+
+            reset() {
+                this.state.groups = GROUP_NAMES.map(letter => ({
+                    name: letter,
+                    isDoublePoints: false,
+                    slots: { 1: null, 2: null, 3: null, 4: null }
+                }));
+                this.render();
+            }
+
+            render() {
+                this.renderMainGrid();
+                this.renderCaptureGrid();
+            }
+
+            // --- RENDERIZADO DEL EDITOR (Tarjetas grandes) ---
+            renderMainGrid() {
+                const container = document.getElementById('groups-grid');
+                container.innerHTML = '';
+
+                this.state.groups.forEach((group, gIndex) => {
+                    const el = document.createElement('div');
+                    
+                    // Clases dinámicas para estilo normal o dorado
+                    const wrapperClass = group.isDoublePoints 
+                        ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)] bg-gradient-to-b from-[#132554] to-[#0f172a]'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10';
+                    
+                    const headerBg = group.isDoublePoints ? 'bg-yellow-500/20 border-yellow-500/50' : 'bg-black/20 border-white/5';
+                    const titleColor = group.isDoublePoints ? 'text-yellow-400' : 'text-white';
+                    const btnClass = group.isDoublePoints 
+                        ? 'bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300' 
+                        : 'bg-transparent text-white/50 border-white/20 hover:text-yellow-400 hover:border-yellow-400';
+                    const starFill = group.isDoublePoints ? 'black' : 'none';
+
+                    el.className = `rounded-xl overflow-hidden border transition-all duration-300 ${wrapperClass}`;
+                    el.innerHTML = `
+                        <div class="flex justify-between items-center px-3 py-2 border-b ${headerBg}">
+                            <span class="font-black text-lg ${titleColor}">GRUPO ${group.name}</span>
+                            <button onclick="app.toggleDoublePoints(${gIndex})" class="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors border ${btnClass}">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="${starFill}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                x2
+                            </button>
+                        </div>
+                        <div class="p-2 space-y-1.5">
+                            ${[1, 2, 3, 4].map(b => this.getSlotHTML(group.slots[b], gIndex, b)).join('')}
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            }
+
+            getSlotHTML(team, gIndex, b) {
+                if (team) {
+                    return `
+                    <div onclick="app.handleSlotClick(${gIndex}, ${b})" class="h-10 flex items-center px-3 rounded-lg cursor-pointer transition-all border bg-white/10 border-white/5 hover:bg-white/20">
+                        <span class="text-xl mr-3">${team.flag}</span>
+                        <span class="font-bold text-sm truncate uppercase flex-1 text-white">${team.name}</span>
+                        <span class="text-[9px] font-bold bg-black/40 px-1.5 py-0.5 rounded text-white/60 ml-2">${team.conf}</span>
+                    </div>`;
+                } else {
+                    return `
+                    <div onclick="app.handleSlotClick(${gIndex}, ${b})" class="h-10 flex items-center px-3 rounded-lg cursor-pointer transition-all border bg-black/20 border-dashed border-white/10 hover:border-white/30 text-white/30">
+                        <span class="mr-2 opacity-50 font-medium text-xs">B${b}</span>
+                        <span class="text-xs font-medium">Seleccionar...</span>
+                    </div>`;
+                }
+            }
+
+            // --- RENDERIZADO CAPTURA (Compacto) ---
+            renderCaptureGrid() {
+                const container = document.getElementById('capture-grid');
+                container.innerHTML = '';
+
+                this.state.groups.forEach(group => {
+                    const el = document.createElement('div');
+                    
+                    // Estilo normal vs dorado (x2)
+                    let styleClass = 'bg-white/10 border border-white/10';
+                    let inlineStyle = '';
+                    let titleClass = 'text-white';
+                    let headerBg = 'bg-black/20';
+
+                    if (group.isDoublePoints) {
+                        styleClass = 'shadow-[0_0_10px_rgba(251,191,36,0.6)] border border-yellow-300 z-10';
+                        inlineStyle = 'background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);';
+                        titleClass = 'text-black';
+                        headerBg = 'border-b border-black/10';
+                    }
+
+                    el.className = `relative rounded-lg overflow-hidden flex flex-col justify-between ${styleClass}`;
+                    if (inlineStyle) el.style = inlineStyle;
+
+                    // Grid de banderas internas
+                    const flagsHTML = [1, 2, 3, 4].map(b => `
+                        <div class="flex items-center justify-center w-full h-full">
+                            <span class="text-2xl drop-shadow-sm leading-none transform -translate-y-[1px]">
+                                ${group.slots[b] ? group.slots[b].flag : '<span class="opacity-10 text-lg scale-75">⚪</span>'}
+                            </span>
+                        </div>
+                    `).join('');
+
+                    el.innerHTML = `
+                        <div class="text-center py-0.5 ${headerBg}">
+                            <span class="font-black text-sm ${titleClass}">${group.name}</span>
+                        </div>
+                        <div class="p-0.5 grid grid-cols-2 gap-x-1 gap-y-0 items-center justify-items-center grow">
+                            ${flagsHTML}
+                        </div>
+                        ${group.isDoublePoints ? '<div class="absolute bottom-0 w-full text-center bg-black/10 leading-none pb-0.5"><span class="text-[6px] font-bold text-black uppercase tracking-widest">x2</span></div>' : ''}
+                    `;
+                    container.appendChild(el);
+                });
+            }
+
+            // --- LOGICA INTERACCIÓN ---
+            handleSlotClick(gIndex, bombo) {
+                if (this.state.groups[gIndex].slots[bombo]) {
+                    // Borrar
+                    this.state.groups[gIndex].slots[bombo] = null;
+                    this.render();
+                } else {
+                    // Abrir modal
+                    this.openModal(gIndex, bombo);
+                }
+            }
+
+            toggleDoublePoints(gIndex) {
+                this.state.groups[gIndex].isDoublePoints = !this.state.groups[gIndex].isDoublePoints;
+                this.render();
+            }
+
+            // --- MODAL ---
+            openModal(gIndex, bombo) {
+                this.state.selectionTarget = { groupIndex: gIndex, bombo };
+                document.getElementById('modal-title').innerText = `Elegir Equipo (Bombo ${bombo})`;
+                const container = document.getElementById('modal-content');
+                container.innerHTML = '';
+                
+                const available = this.getAvailableTeams(bombo);
+                
+                if (available.length === 0) {
+                    document.getElementById('modal-empty').classList.remove('hidden');
+                } else {
+                    document.getElementById('modal-empty').classList.add('hidden');
+                    available.forEach(team => {
+                        const selectable = this.checkConstraint(this.state.groups[gIndex], team);
+                        const btn = document.createElement('button');
+                        
+                        const baseClass = "flex flex-col p-3 rounded-xl border transition-all text-left group";
+                        const activeClass = "bg-white/5 hover:bg-white/10 border-white/5 cursor-pointer";
+                        const disabledClass = "bg-black/20 border-transparent opacity-40 cursor-not-allowed grayscale";
+                        const badgeClass = selectable ? "bg-white/10 text-white/70" : "bg-red-500/20 text-red-300";
+
+                        btn.className = `${baseClass} ${selectable ? activeClass : disabledClass}`;
+                        btn.disabled = !selectable;
+                        btn.onclick = () => { if(selectable) this.selectTeam(team); };
+
+                        btn.innerHTML = `
+                            <div class="flex justify-between w-full mb-2">
+                                <span class="text-2xl transform group-hover:scale-110 transition-transform">${team.flag}</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded h-fit ${badgeClass}">${team.conf}</span>
+                            </div>
+                            <span class="font-bold text-xs uppercase text-white truncate w-full">${team.name}</span>
+                        `;
+                        container.appendChild(btn);
+                    });
+                }
+                
+                document.getElementById('selection-modal').classList.remove('hidden');
+                document.getElementById('selection-modal').classList.add('flex');
+            }
+
+            closeModal() {
+                document.getElementById('selection-modal').classList.add('hidden');
+                document.getElementById('selection-modal').classList.remove('flex');
+            }
+
+            selectTeam(team) {
+                const { groupIndex, bombo } = this.state.selectionTarget;
+                this.state.groups[groupIndex].slots[bombo] = team;
+                this.closeModal();
+                this.render();
+            }
+
+            // --- LÓGICA DE NEGOCIO ---
+            getAvailableTeams(bomboNum) {
+                const usedIds = this.state.groups.map(g => g.slots[bomboNum]?.id).filter(Boolean);
+                return DATA[bomboNum].filter(t => !usedIds.includes(t.id));
+            }
+
+            checkConstraint(group, newTeam) {
+                if (!newTeam) return true;
+                const currentTeams = Object.values(group.slots).filter(Boolean);
+                if (newTeam.conf === 'INT') return true;
+                const sameConfCount = currentTeams.filter(t => t.conf === newTeam.conf).length;
+                if (newTeam.conf === 'UEFA') return sameConfCount < 2;
+                return sameConfCount < 1;
+            }
+
+            autoFill() {
+                // Backtracking simplificado (reintentos)
+                let attempt = 0;
+                while (attempt < 100) {
+                    attempt++;
+                    try {
+                        const newGroups = GROUP_NAMES.map(l => ({ name: l, isDoublePoints: false, slots: {1:null,2:null,3:null,4:null} }));
+                        const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+                        
+                        // Bombo 1 (Cabezas)
+                        const b1 = shuffle(DATA[1]);
+                        newGroups.forEach((g, i) => g.slots[1] = b1[i]);
+
+                        // Otros bombos
+                        [2, 3, 4].forEach(potNum => {
+                            let potTeams = shuffle(DATA[potNum]);
+                            for (let i = 0; i < 12; i++) {
+                                const group = newGroups[i];
+                                // Buscar primer equipo válido
+                                const idx = potTeams.findIndex(t => this.checkConstraint(group, t));
+                                if (idx === -1) throw new Error("Deadlock");
+                                group.slots[potNum] = potTeams[idx];
+                                potTeams.splice(idx, 1);
+                            }
+                        });
+                        
+                        // Si llegamos acá, éxito
+                        this.state.groups = newGroups;
+                        this.render();
+                        return;
+
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                alert("No se pudo generar una combinación válida. Intenta de nuevo.");
+            }
+
+            toggleCaptureMode(show) {
+                const mainHeader = document.getElementById('main-header');
+                const editorView = document.getElementById('editor-view');
+                const captureView = document.getElementById('capture-view');
+
+                if (show) {
+                    captureView.classList.remove('hidden');
+                    captureView.classList.add('flex');
+                    document.body.style.overflow = 'hidden'; // Evitar scroll en body
+                } else {
+                    captureView.classList.add('hidden');
+                    captureView.classList.remove('flex');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        }
+
+        // Iniciar App
+        const app = new App();
+    </script>
+</body>
+</html>
+
