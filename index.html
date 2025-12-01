@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulador Sorteo Mundial 2026 - Hosts Locked</title>
+    <title>Simulador Sorteo Mundial 2026 - Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Fuentes y Estilos Base */
@@ -184,6 +184,12 @@
                 return false;
             }
 
+            // Nueva función: Verificar si el grupo permite x2
+            isX2Allowed(gIndex) {
+                // No permitido en A (0), B (1), D (3)
+                return gIndex !== 0 && gIndex !== 1 && gIndex !== 3;
+            }
+
             render() {
                 this.renderMainGrid();
                 this.renderCaptureGrid();
@@ -202,19 +208,28 @@
                     
                     const headerBg = group.isDoublePoints ? 'bg-yellow-500/20 border-yellow-500/50' : 'bg-black/20 border-white/5';
                     const titleColor = group.isDoublePoints ? 'text-yellow-400' : 'text-white';
-                    const btnClass = group.isDoublePoints 
-                        ? 'bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300' 
-                        : 'bg-transparent text-white/50 border-white/20 hover:text-yellow-400 hover:border-yellow-400';
-                    const starFill = group.isDoublePoints ? 'black' : 'none';
+                    
+                    // Lógica del botón x2
+                    let x2ButtonHTML = '';
+                    if (this.isX2Allowed(gIndex)) {
+                        const btnClass = group.isDoublePoints 
+                            ? 'bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300' 
+                            : 'bg-transparent text-white/50 border-white/20 hover:text-yellow-400 hover:border-yellow-400';
+                        const starFill = group.isDoublePoints ? 'black' : 'none';
+                        
+                        x2ButtonHTML = `
+                            <button onclick="app.toggleDoublePoints(${gIndex})" class="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors border ${btnClass}">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="${starFill}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                x2
+                            </button>
+                        `;
+                    }
 
                     el.className = `rounded-xl overflow-hidden border transition-all duration-300 ${wrapperClass}`;
                     el.innerHTML = `
                         <div class="flex justify-between items-center px-3 py-2 border-b ${headerBg}">
                             <span class="font-black text-lg ${titleColor}">GRUPO ${group.name}</span>
-                            <button onclick="app.toggleDoublePoints(${gIndex})" class="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors border ${btnClass}">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="${starFill}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                x2
-                            </button>
+                            ${x2ButtonHTML}
                         </div>
                         <div class="p-2 space-y-1.5">
                             ${[1, 2, 3, 4].map(b => this.getSlotHTML(group.slots[b], gIndex, b)).join('')}
@@ -228,7 +243,6 @@
                 const locked = this.isLocked(gIndex, b);
                 
                 if (team) {
-                    // Si está bloqueado, estilo diferente y sin onclick
                     const cursorClass = locked ? 'cursor-default border-yellow-500/30 bg-yellow-900/10' : 'cursor-pointer border-white/5 hover:bg-white/20';
                     const clickEvent = locked ? '' : `onclick="app.handleSlotClick(${gIndex}, ${b})"`;
                     const lockIcon = locked ? '<svg class="w-3 h-3 text-yellow-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>' : '';
@@ -292,9 +306,7 @@
             }
 
             handleSlotClick(gIndex, bombo) {
-                // Bloqueo de Hosts
                 if (this.isLocked(gIndex, bombo)) return;
-
                 if (this.state.groups[gIndex].slots[bombo]) {
                     this.state.groups[gIndex].slots[bombo] = null;
                     this.render();
@@ -304,6 +316,7 @@
             }
 
             toggleDoublePoints(gIndex) {
+                if (!this.isX2Allowed(gIndex)) return; // Protección extra
                 this.state.groups[gIndex].isDoublePoints = !this.state.groups[gIndex].isDoublePoints;
                 this.render();
             }
@@ -380,7 +393,7 @@
                     try {
                         const newGroups = GROUP_NAMES.map(l => ({ name: l, isDoublePoints: false, slots: {1:null,2:null,3:null,4:null} }));
                         
-                        // 1. ASIGNAR HOSTS (Siempre se asignan al iniciar el cálculo)
+                        // 1. ASIGNAR HOSTS
                         newGroups[0].slots[1] = DATA[1].find(t => t.id === 'mex');
                         newGroups[1].slots[1] = DATA[1].find(t => t.id === 'can');
                         newGroups[3].slots[1] = DATA[1].find(t => t.id === 'usa');
